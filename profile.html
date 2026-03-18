@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurdish Chat — پڕۆفایل</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="profile-page">
+
+  <!-- Topbar -->
+  <div class="profile-topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn-icon" onclick="window.location.href='dashboard.html'">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      </button>
+      <span class="profile-topbar-brand">Kurdish Chat</span>
+    </div>
+    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:0.82rem;" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      دەرچوون
+    </button>
+  </div>
+
+  <div class="profile-body">
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:18px;" id="profileGrid">
+
+      <!-- Left column -->
+      <div>
+        <!-- Avatar card -->
+        <div class="pcard">
+          <div class="pcard-body" style="text-align:center;">
+            <div class="av-edit-wrap" style="margin:0 auto 14px;display:inline-block;">
+              <img id="profilePhoto" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="">
+              <div class="av-edit-btn" onclick="document.getElementById('photoUpload').click()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <input type="file" id="photoUpload" accept="image/*" style="display:none;" onchange="uploadPhoto(event)">
+            </div>
+            <div style="font-size:1rem;font-weight:800;color:var(--t1);margin-bottom:3px;" id="displayName">بەکارهێنەر</div>
+            <div style="font-size:0.78rem;color:var(--t3);margin-bottom:12px;" id="displayUsername">@username</div>
+            <span class="pill pill-green">ئامادە</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="pcard" style="margin-top:14px;">
+          <div class="pcard-head"><span class="pcard-title">ئاماری</span></div>
+          <div class="pcard-body">
+            <div class="stat-row">
+              <div class="stat-box"><div class="stat-num" id="statsF">0</div><div class="stat-lbl">هاوڕێ</div></div>
+              <div class="stat-box"><div class="stat-num" id="statsG">0</div><div class="stat-lbl">گروپ</div></div>
+              <div class="stat-box"><div class="stat-num" id="statsC">0</div><div class="stat-lbl">چات</div></div>
+            </div>
+            <div style="margin-top:14px;font-size:0.75rem;color:var(--t3);">
+              ئەندام لە: <span id="memberSince" style="color:var(--t2);">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div>
+        <!-- Edit Profile -->
+        <div class="pcard">
+          <div class="pcard-head"><span class="pcard-title">دەستکاری پڕۆفایل</span></div>
+          <div class="pcard-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div class="form-group">
+                <label class="form-label">ناوی تەواو</label>
+                <input type="text" id="editName" class="form-input" placeholder="ناوی تەواو">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ناوی بەکارهێنەر</label>
+                <input type="text" id="editUsername" class="form-input" placeholder="username">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">ئیمەیل</label>
+              <input type="email" id="editEmail" class="form-input" readonly style="opacity:0.6;cursor:not-allowed;">
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label class="form-label">ژیاننامە</label>
+              <textarea id="editBio" class="form-input" rows="3" placeholder="ژیاننامەی خۆت بنووسە..."></textarea>
+            </div>
+            <button class="btn btn-primary" style="width:auto;padding:10px 24px;" onclick="saveProfile()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              پاشەکەوتکردن
+            </button>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="pcard" style="margin-top:14px;">
+          <div class="pcard-head"><span class="pcard-title">پاراستن</span></div>
+          <div class="pcard-body">
+            <button class="btn btn-secondary" style="width:100%;margin-bottom:8px;justify-content:flex-start;" onclick="document.getElementById('changePwdModal').classList.remove('hidden')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              گۆڕینی تێپەڕەوشە
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="pcard" style="margin-top:14px;">
+          <div class="pcard-head"><span class="pcard-title">ئاگادارکردنەوەکان</span></div>
+          <div class="pcard-body">
+            <div class="toggle-row">
+              <span class="toggle-lbl">ئاگادارکردنەوەی نامە</span>
+              <label class="toggle"><input type="checkbox" id="notifMsg" checked><div class="toggle-track"></div></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-lbl">داواکاری هاوڕێیەتی</span>
+              <label class="toggle"><input type="checkbox" id="notifFriend" checked><div class="toggle-track"></div></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-lbl">ئاگادارکردنەوەی گروپ</span>
+              <label class="toggle"><input type="checkbox" id="notifGroup" checked><div class="toggle-track"></div></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePwdModal" class="modal-back hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">گۆڕینی تێپەڕەوشە</span>
+      <button class="btn-icon" onclick="document.getElementById('changePwdModal').classList.add('hidden')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="form-group"><label class="form-label">تێپەڕەوشەی کۆن</label><input type="password" id="pwdCurrent" class="form-input"></div>
+    <div class="form-group" style="margin-top:10px;"><label class="form-label">تێپەڕەوشەی نوێ</label><input type="password" id="pwdNew" class="form-input"></div>
+    <div class="form-group" style="margin-top:10px;"><label class="form-label">دووبارە تێپەڕەوشەی نوێ</label><input type="password" id="pwdConfirm" class="form-input"></div>
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button class="btn btn-primary" onclick="doChangePassword()">گۆڕین</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('changePwdModal').classList.add('hidden')">داخستن</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="hidden"><span id="toastMessage"></span></div>
+
+<script src="firebase-config.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await utils.requireAuth();
+  currentUser = await utils.getCurrentUser();
+  loadProfile();
+  loadStats();
+  // Responsive
+  if (window.innerWidth < 768) {
+    document.getElementById('profileGrid').style.gridTemplateColumns = '1fr';
+  }
+});
+
+async function loadProfile() {
+  const data = await utils.getUserData(currentUser.uid);
+  if (!data) return;
+  document.getElementById('displayName').textContent   = data.firstName || '';
+  document.getElementById('displayUsername').textContent = '@' + (data.username || '');
+  document.getElementById('editName').value     = data.firstName || '';
+  document.getElementById('editUsername').value = data.username  || '';
+  document.getElementById('editEmail').value    = data.email     || '';
+  document.getElementById('editBio').value      = data.bio       || '';
+  if (data.profilePhoto) document.getElementById('profilePhoto').src = data.profilePhoto;
+  if (data.createdAt) document.getElementById('memberSince').textContent = utils.formatDate(data.createdAt, 'short');
+}
+
+async function loadStats() {
+  const [f, g, c] = await Promise.all([
+    db.collection('friends').where('users','array-contains',currentUser.uid).get(),
+    db.collection('publicGroups').where('members','array-contains',currentUser.uid).get(),
+    db.collection('privateChats').where('participants','array-contains',currentUser.uid).get()
+  ]);
+  document.getElementById('statsF').textContent = f.size;
+  document.getElementById('statsG').textContent = g.size;
+  document.getElementById('statsC').textContent = c.size;
+}
+
+async function saveProfile() {
+  const name  = document.getElementById('editName').value.trim();
+  const uname = document.getElementById('editUsername').value.trim();
+  const bio   = document.getElementById('editBio').value.trim();
+  if (!name)  return showToast('ناوی تەواو بنووسە', 'warning');
+  if (!utils.validateUsername(uname)) return showToast('ناوی بەکارهێنەر 3-20 پیت (a-z,0-9,_)', 'error');
+  // Check username uniqueness
+  const snap = await db.collection('users').where('username','==',uname).get();
+  const taken = snap.docs.some(d => d.id !== currentUser.uid);
+  if (taken) return showToast('ئەم ناوی بەکارهێنەرە پێشتر هەیە', 'error');
+  await authFns.updateProfile({ firstName: name, username: uname, bio });
+  document.getElementById('displayName').textContent = name;
+  document.getElementById('displayUsername').textContent = '@' + uname;
+}
+
+async function uploadPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return showToast('تکایە وێنە هەڵبژێرە', 'error');
+  if (file.size > 5 * 1024 * 1024)     return showToast('وێنە دەبێت کەمتر بێت لە 5MB', 'error');
+  showToast('دەستپێکردنی بارکردن...', 'info');
+  try {
+    const ref  = storage.ref(`profilePhotos/${currentUser.uid}/${Date.now()}_${file.name}`);
+    const task = ref.put(file);
+    task.on('state_changed', null, () => showToast('نەتوانرا باربکرێت', 'error'), async () => {
+      const url = await task.snapshot.ref.getDownloadURL();
+      await authFns.updateProfile({ profilePhoto: url });
+      document.getElementById('profilePhoto').src = url;
+    });
+  } catch { showToast('نەتوانرا باربکرێت', 'error'); }
+}
+
+async function doChangePassword() {
+  const cur  = document.getElementById('pwdCurrent').value;
+  const next = document.getElementById('pwdNew').value;
+  const conf = document.getElementById('pwdConfirm').value;
+  if (!cur || !next || !conf) return showToast('هەموو بەشەکان پڕ بکە', 'warning');
+  if (!utils.validatePassword(next)) return showToast('تێپەڕەوشەی نوێ لاکەم 6 پیت بێت', 'error');
+  if (next !== conf) return showToast('تێپەڕەوشەکان یەکسان نین', 'error');
+  try {
+    await authFns.changePassword(cur, next);
+    document.getElementById('changePwdModal').classList.add('hidden');
+  } catch {}
+}
+
+function logout() { authFns.logout(); }
+</script>
+</body>
+</html>
